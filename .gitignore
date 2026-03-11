@@ -25,7 +25,7 @@ jspm_packages/
 .eslintcache
 
 # dotenv environment variables file (CRITICAL TO IGNORE)
-
+.env
 .env.test
 .env.production
 
