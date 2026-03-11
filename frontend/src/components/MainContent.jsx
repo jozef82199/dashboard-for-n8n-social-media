@@ -28,7 +28,7 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
             setMeta(res.meta);
             setPage(pg);
         } catch (e) {
-            setError('Cannot connect to backend. Make sure it is running on port 3001.');
+            setError('Cannot connect to backend. Please check your connection and configuration.');
         } finally {
             setLoading(false);
         }
