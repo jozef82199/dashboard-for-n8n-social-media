@@ -159,4 +159,96 @@ app.patch('/api/users/:id/bot', async (req, res) => {
     }
 });
 
+// ── 5. Posts (list, create, update only) ───────────────────────────────────────
+app.get('/api/posts', async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const offset = (pageNum - 1) * limitNum;
+
+        const [data, count] = await Promise.all([
+            pool.query(
+                `SELECT id, post_url, message, product_url, availability, created_at
+                 FROM posts
+                 ORDER BY id DESC
+                 LIMIT $1 OFFSET $2`,
+                [limitNum, offset]
+            ),
+            pool.query('SELECT COUNT(*) FROM posts'),
+        ]);
+
+        const total = parseInt(count.rows[0].count);
+        res.json({
+            data: data.rows,
+            meta: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum),
+            },
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/posts', async (req, res) => {
+    try {
+        const { message = null, product_url = null, availability = true } = req.body;
+        const result = await pool.query(
+            `INSERT INTO posts (message, product_url, availability)
+             VALUES ($1, $2, $3)
+             RETURNING id, post_url, message, product_url, availability, created_at`,
+            [message, product_url, availability]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/api/posts/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { message, product_url, availability } = req.body;
+
+        const updates = [];
+        const values = [];
+        let idx = 1;
+        if (message !== undefined) {
+            updates.push(`message = $${idx++}`);
+            values.push(message);
+        }
+        if (product_url !== undefined) {
+            updates.push(`product_url = $${idx++}`);
+            values.push(product_url);
+        }
+        if (availability !== undefined) {
+            updates.push(`availability = $${idx++}`);
+            values.push(availability);
+        }
+        if (updates.length === 0) {
+            const row = await pool.query(
+                'SELECT id, post_url, message, product_url, availability, created_at FROM posts WHERE id = $1',
+                [id]
+            );
+            if (!row.rows.length) return res.status(404).json({ error: 'Post not found' });
+            return res.json(row.rows[0]);
+        }
+        values.push(id);
+        const result = await pool.query(
+            `UPDATE posts SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, post_url, message, product_url, availability, created_at`,
+            values
+        );
+        if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));

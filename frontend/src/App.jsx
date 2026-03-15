@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import ChatPanel from './components/ChatPanel';
+import PostsGrid from './components/PostsGrid';
 
 export default function App() {
   const [platform, setPlatform] = useState('telegram');
@@ -15,7 +16,11 @@ export default function App() {
   return (
     <>
       <Sidebar platform={platform} setPlatform={handlePlatformChange} />
-      <MainContent platform={platform} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
+      {platform === 'posts' ? (
+        <PostsGrid />
+      ) : (
+        <MainContent platform={platform} selectedUser={selectedUser} onSelectUser={setSelectedUser} />
+      )}
       <ChatPanel selectedUser={selectedUser} />
     </>
   );

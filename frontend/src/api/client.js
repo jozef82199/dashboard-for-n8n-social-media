@@ -27,3 +27,23 @@ export const toggleBot = (id, bot_active) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bot_active }),
     });
+
+export const getPosts = (params = {}) => {
+    const qs = new URLSearchParams({ page: 1, limit: 10, ...params });
+    Object.keys(params).forEach(k => params[k] == null && qs.delete(k));
+    return req(`/posts?${qs}`);
+};
+
+export const createPost = ({ message, product_url, availability }) =>
+    req('/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, product_url, availability }),
+    });
+
+export const updatePost = (id, payload) =>
+    req(`/posts/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
