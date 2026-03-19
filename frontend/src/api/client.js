@@ -34,11 +34,11 @@ export const getPosts = (params = {}) => {
     return req(`/posts?${qs}`);
 };
 
-export const createPost = ({ message, product_url, availability }) =>
+export const createPost = ({ message, product_url, availability, sku }) =>
     req('/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, product_url, availability }),
+        body: JSON.stringify({ message, product_url, availability, sku }),
     });
 
 export const updatePost = (id, payload) =>

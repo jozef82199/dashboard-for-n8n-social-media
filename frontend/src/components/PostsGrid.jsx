@@ -21,9 +21,9 @@ export default function PostsGrid() {
     const [error, setError] = useState(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [addSaving, setAddSaving] = useState(false);
-    const [addForm, setAddForm] = useState({ message: '', product_url: '', availability: true });
+    const [addForm, setAddForm] = useState({ message: '', product_url: '', availability: true, sku: '' });
     const [editingId, setEditingId] = useState(null);
-    const [editForm, setEditForm] = useState({ message: '', product_url: '' });
+    const [editForm, setEditForm] = useState({ message: '', product_url: '', sku: '' });
 
     const load = useCallback(async (pg = 1) => {
         setLoading(true);
@@ -52,9 +52,10 @@ export default function PostsGrid() {
                 message: addForm.message || null,
                 product_url: addForm.product_url || null,
                 availability: addForm.availability,
+                sku: addForm.sku || null,
             });
             setShowAddForm(false);
-            setAddForm({ message: '', product_url: '', availability: true });
+            setAddForm({ message: '', product_url: '', availability: true, sku: '' });
             load(page);
         } catch (err) {
             console.error(err);
@@ -66,12 +67,16 @@ export default function PostsGrid() {
 
     const startEdit = (post) => {
         setEditingId(post.id);
-        setEditForm({ message: post.message ?? '', product_url: post.product_url ?? '' });
+        setEditForm({
+            message: post.message ?? '',
+            product_url: post.product_url ?? '',
+            sku: post.sku ?? '',
+        });
     };
 
     const cancelEdit = () => {
         setEditingId(null);
-        setEditForm({ message: '', product_url: '' });
+        setEditForm({ message: '', product_url: '', sku: '' });
     };
 
     const saveEdit = async () => {
@@ -79,6 +84,7 @@ export default function PostsGrid() {
         const payload = {};
         if (editForm.message !== undefined) payload.message = editForm.message || null;
         if (editForm.product_url !== undefined) payload.product_url = editForm.product_url || null;
+        if (editForm.sku !== undefined) payload.sku = editForm.sku || null;
         if (Object.keys(payload).length === 0) {
             setEditingId(null);
             return;
@@ -159,6 +165,16 @@ export default function PostsGrid() {
                                         className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">SKU</label>
+                                    <input
+                                        type="number"
+                                        value={editForm.sku}
+                                        onChange={(e) => setEditForm((f) => ({ ...f, sku: e.target.value }))}
+                                        className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                        placeholder="Optional integer"
+                                    />
+                                </div>
                             </div>
                             <div className="flex gap-2 mt-6">
                                 <button
@@ -202,6 +218,16 @@ export default function PostsGrid() {
                                     className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                 />
                             </div>
+                            <div>
+                                <label className="block text-xs font-medium text-slate-500 mb-1">SKU</label>
+                                <input
+                                    type="number"
+                                    value={addForm.sku}
+                                    onChange={(e) => setAddForm((f) => ({ ...f, sku: e.target.value }))}
+                                    className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                    placeholder="Optional integer"
+                                />
+                            </div>
                             <div className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
@@ -225,8 +251,8 @@ export default function PostsGrid() {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setShowAddForm(false);
-                                        setAddForm({ message: '', product_url: '', availability: true });
+                                    setShowAddForm(false);
+                                        setAddForm({ message: '', product_url: '', availability: true, sku: '' });
                                     }}
                                     className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
                                 >
@@ -253,6 +279,9 @@ export default function PostsGrid() {
                                 <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
                                     Product URL
                                 </th>
+                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                    SKU
+                                </th>
                                 <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
                                     Availability
                                 </th>
@@ -267,7 +296,7 @@ export default function PostsGrid() {
                         <tbody className="bg-white divide-y divide-slate-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center">
+                                    <td colSpan={8} className="px-6 py-10 text-center">
                                         <div className="flex items-center justify-center gap-2 text-slate-400">
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                             <span className="text-sm">Loading…</span>
@@ -276,7 +305,7 @@ export default function PostsGrid() {
                                 </tr>
                             ) : posts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-slate-400 text-sm">
+                                    <td colSpan={8} className="px-6 py-10 text-center text-slate-400 text-sm">
                                         No posts yet. Click &quot;Add post&quot; to create one.
                                     </td>
                                 </tr>
@@ -309,6 +338,9 @@ export default function PostsGrid() {
                                                 <span className="block max-w-[180px] truncate" title={post.product_url ?? ''}>
                                                     {post.product_url ?? '—'}
                                                 </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-slate-600 font-mono">
+                                                {post.sku ?? '—'}
                                             </td>
                                             <td className="px-4 py-3 whitespace-nowrap text-center">
                                                 <input

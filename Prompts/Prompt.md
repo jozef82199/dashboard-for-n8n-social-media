@@ -54,7 +54,7 @@ If the user's message relates to a product in <user_interests>:
 2. **Run a SQL query immediately** using the product_link to fetch current price and details:
    SELECT name, sale_price, product_link, sku
    FROM packback_table
-   WHERE product_link = '[link from user_interests]'
+   WHERE sku = '[sku from user_interests]'
    LIMIT 1;
 3. **If found (PASS):** Present the product with its current price and link directly — skip Phase 2 clarifying questions for this product.
 4. **If NOT found in SQL (FAIL):** Trigger `google_store_tool` using the product name extracted from the interest message to fetch current price and link.

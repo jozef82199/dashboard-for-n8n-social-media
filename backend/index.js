@@ -169,7 +169,7 @@ app.get('/api/posts', async (req, res) => {
 
         const [data, count] = await Promise.all([
             pool.query(
-                `SELECT id, post_url, message, product_url, availability, created_at
+                `SELECT id, post_url, message, product_url, sku, availability, created_at
                  FROM posts
                  ORDER BY id DESC
                  LIMIT $1 OFFSET $2`,
@@ -196,12 +196,18 @@ app.get('/api/posts', async (req, res) => {
 
 app.post('/api/posts', async (req, res) => {
     try {
-        const { message = null, product_url = null, availability = true } = req.body;
+        const { message = null, product_url = null, availability = true, sku = null } = req.body;
+
+        // Validation: sku must be an integer if provided
+        if (sku !== null && !Number.isInteger(Number(sku))) {
+            return res.status(400).json({ error: 'SKU must be an integer' });
+        }
+
         const result = await pool.query(
-            `INSERT INTO posts (message, product_url, availability)
-             VALUES ($1, $2, $3)
-             RETURNING id, post_url, message, product_url, availability, created_at`,
-            [message, product_url, availability]
+            `INSERT INTO posts (message, product_url, availability, sku)
+             VALUES ($1, $2, $3, $4)
+             RETURNING id, post_url, message, product_url, sku, availability, created_at`,
+            [message, product_url, availability, sku ? parseInt(sku) : null]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -213,7 +219,12 @@ app.post('/api/posts', async (req, res) => {
 app.patch('/api/posts/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { message, product_url, availability } = req.body;
+        const { message, product_url, availability, sku } = req.body;
+
+        // Validation: sku must be an integer if provided
+        if (sku !== undefined && sku !== null && !Number.isInteger(Number(sku))) {
+            return res.status(400).json({ error: 'SKU must be an integer' });
+        }
 
         const updates = [];
         const values = [];
@@ -230,9 +241,14 @@ app.patch('/api/posts/:id', async (req, res) => {
             updates.push(`availability = $${idx++}`);
             values.push(availability);
         }
+        if (sku !== undefined) {
+            updates.push(`sku = $${idx++}`);
+            values.push(sku !== null ? parseInt(sku) : null);
+        }
+
         if (updates.length === 0) {
             const row = await pool.query(
-                'SELECT id, post_url, message, product_url, availability, created_at FROM posts WHERE id = $1',
+                'SELECT id, post_url, message, product_url, sku, availability, created_at FROM posts WHERE id = $1',
                 [id]
             );
             if (!row.rows.length) return res.status(404).json({ error: 'Post not found' });
@@ -240,7 +256,7 @@ app.patch('/api/posts/:id', async (req, res) => {
         }
         values.push(id);
         const result = await pool.query(
-            `UPDATE posts SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, post_url, message, product_url, availability, created_at`,
+            `UPDATE posts SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, post_url, message, product_url, sku, availability, created_at`,
             values
         );
         if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
