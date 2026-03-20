@@ -11,12 +11,13 @@ app.use(express.json());
 // ── 1. Get Users (filtered + paginated) ──────────────────────────────────────
 app.get('/api/users', async (req, res) => {
     try {
-        const { platform = 'all', bot_active, search, page = 1, limit = 10 } = req.query;
+        const { platform = 'all', bot_active, search, page = 1, limit = 10, has_unreviewed } = req.query;
 
         let botVal = null;
         if (bot_active === 'true') botVal = true;
         if (bot_active === 'false') botVal = false;
 
+        const unreviewedOnly = has_unreviewed === 'true';
         const searchVal = search || null;
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -32,8 +33,14 @@ app.get('/api/users', async (req, res) => {
              OR last_name      ILIKE '%' || $3 || '%'
              OR platform_user_id ILIKE '%' || $3 || '%'
              OR phone_number   ILIKE '%' || $3 || '%')
+        AND ($4::boolean IS FALSE OR EXISTS (
+          SELECT 1 FROM n8n_chat_histories ch
+          WHERE ch.session_id ILIKE '%' || backpacker_users.platform_user_id || '%'
+            AND ch.message->>'type' = 'ai'
+            AND ch.note IS NULL
+        ))
       ORDER BY id DESC
-      LIMIT $4 OFFSET $5;
+      LIMIT $5 OFFSET $6;
     `;
         const cq = `
       SELECT COUNT(*)
@@ -44,12 +51,18 @@ app.get('/api/users', async (req, res) => {
              OR first_name     ILIKE '%' || $3 || '%'
              OR last_name      ILIKE '%' || $3 || '%'
              OR platform_user_id ILIKE '%' || $3 || '%'
-             OR phone_number   ILIKE '%' || $3 || '%');
+             OR phone_number   ILIKE '%' || $3 || '%')
+        AND ($4::boolean IS FALSE OR EXISTS (
+          SELECT 1 FROM n8n_chat_histories ch
+          WHERE ch.session_id ILIKE '%' || backpacker_users.platform_user_id || '%'
+            AND ch.message->>'type' = 'ai'
+            AND ch.note IS NULL
+        ));
     `;
 
         const [data, count] = await Promise.all([
-            pool.query(q, [platform, botVal, searchVal, limitNum, offset]),
-            pool.query(cq, [platform, botVal, searchVal]),
+            pool.query(q, [platform, botVal, searchVal, unreviewedOnly, limitNum, offset]),
+            pool.query(cq, [platform, botVal, searchVal, unreviewedOnly]),
         ]);
 
         res.json({

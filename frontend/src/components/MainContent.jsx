@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Bot, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Bot, ChevronLeft, ChevronRight, Loader2, MessageSquareWarning } from 'lucide-react';
 import { getUsers } from '../api/client';
 
 const LABEL = { all: 'All', messenger: 'Messenger', whatsapp: 'WhatsApp', telegram: 'Telegram' };
@@ -12,6 +12,7 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
     const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
     const [search, setSearch] = useState('');
     const [disOnly, setDisOnly] = useState(false);
+    const [unreviewedOnly, setUnreviewedOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -20,9 +21,10 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
     const load = useCallback(async (pg = 1) => {
         setLoading(true); setError(null);
         try {
-            const params = { page: pg, limit: 10 };
+            const params = { page: pg, limit: 15 };
             if (search) params.search = search;
             if (disOnly) params.bot_active = false;
+            if (unreviewedOnly) params.has_unreviewed = true;
             const res = await getUsers(platform, params);
             setUsers(res.data);
             setMeta(res.meta);
@@ -32,10 +34,10 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
         } finally {
             setLoading(false);
         }
-    }, [platform, search, disOnly]);
+    }, [platform, search, disOnly, unreviewedOnly]);
 
     // reload when platform / filter changes
-    useEffect(() => { setPage(1); load(1); }, [platform, disOnly]);
+    useEffect(() => { setPage(1); load(1); }, [platform, disOnly, unreviewedOnly]);
 
     // debounce search
     function handleSearch(e) {
@@ -90,6 +92,22 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
                             after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300
                             after:rounded-full after:h-5 after:w-5 after:transition-all
                             peer-checked:bg-[#137fec] peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                    </label>
+                </div>
+
+                <div className="flex items-center justify-between bg-amber-50 p-3 rounded-lg border border-amber-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                            <MessageSquareWarning className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700">Show Not reviewed Messages</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                        <input type="checkbox" className="sr-only peer" checked={unreviewedOnly} onChange={e => setUnreviewedOnly(e.target.checked)} />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:ring-4 peer-focus:ring-amber-500/20 rounded-full peer
+                            after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300
+                            after:rounded-full after:h-5 after:w-5 after:transition-all
+                            peer-checked:bg-amber-500 peer-checked:after:translate-x-full peer-checked:after:border-white" />
                     </label>
                 </div>
             </div>

@@ -1,9 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { MoreHorizontal, Bot, Send, Pencil, Loader2, MessageSquare } from 'lucide-react';
 import { getMessages, updateAction } from '../api/client';
+import ReactMarkdown from 'react-markdown';
 
 const PLAT_LABEL = { telegram: 'Telegram', whatsapp: 'WhatsApp', messenger: 'Messenger' };
 const initials = (f, l) => `${(f || '?')[0]}${(l || '?')[0]}`.toUpperCase();
+const hasArabic = (text) => /[\u0600-\u06FF]/.test(text || '');
+
+function MessageContent({ content }) {
+    const isArabic = hasArabic(content);
+    return (
+        <div className={`prose prose-sm max-w-none break-words ${isArabic ? 'text-right' : ''}`} dir={isArabic ? 'rtl' : 'ltr'}>
+            <ReactMarkdown
+                components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc mb-2 pl-4 rtl:pr-4 rtl:pl-0">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal mb-2 pl-4 rtl:pr-4 rtl:pl-0">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                    code: ({ children }) => <code className="bg-slate-100 px-1 py-0.5 rounded text-xs">{children}</code>,
+                    pre: ({ children }) => <pre className="bg-slate-100 p-2 rounded mb-2 overflow-x-auto text-xs">{children}</pre>,
+                    a: ({ href, children }) => <a href={href} className="text-[#137fec] underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                }}
+            >
+                {content || ''}
+            </ReactMarkdown>
+        </div>
+    );
+}
 
 // Per-message radio control that auto-saves on change
 function MsgActions({ msg }) {
@@ -168,7 +192,10 @@ export default function ChatPanel({ selectedUser }) {
                     ${isUser
                                             ? 'bg-[#137fec] text-white rounded-2xl rounded-tr-none'
                                             : 'bg-white text-slate-700 rounded-2xl rounded-tl-none border border-slate-100'}`}>
-                                        {msg.content || <span className="italic text-slate-300 text-xs">[empty]</span>}
+                                        {isUser
+                                            ? (msg.content || <span className="italic text-slate-300 text-xs">[empty]</span>)
+                                            : (msg.content ? <MessageContent content={msg.content} /> : <span className="italic text-slate-300 text-xs">[empty]</span>)
+                                        }
                                     </div>
                                     <MsgActions msg={msg} />
                                 </div>
