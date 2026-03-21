@@ -47,6 +47,11 @@ frontend/build/
 *.swp
 *.swo
 
+# OpenSpec
+openspec/
+.agents/
+.opencode/
+
 # Docker
 .docker/
 docker-compose.override.yml

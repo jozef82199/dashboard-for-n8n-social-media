@@ -33,7 +33,7 @@ export default function PostsGrid() {
             setPosts(res.data);
             setMeta(res.meta);
             setPage(pg);
-        } catch (e) {
+        } catch {
             setError('Cannot connect to backend. Please check your connection and configuration.');
         } finally {
             setLoading(false);
@@ -111,11 +111,11 @@ export default function PostsGrid() {
     };
 
     return (
-        <main className="flex-1 flex flex-col h-screen min-w-[500px] border-r border-slate-200 bg-white overflow-hidden">
-            <header className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+        <div className="flex-1 flex flex-col h-full border-r border-slate-200 bg-white overflow-hidden">
+            <header className="px-4 lg:px-6 py-4 lg:py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white sticky top-0 z-10">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Posts</h2>
-                    <p className="text-sm text-slate-500 mt-1">Manage posts (message, product URL, availability)</p>
+                    <h2 className="text-xl lg:text-2xl font-bold text-slate-900">Posts</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage posts (message, product URL, availability)</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="bg-blue-100 text-[#137fec] text-xs font-bold px-2.5 py-1 rounded-full">
@@ -124,7 +124,7 @@ export default function PostsGrid() {
                     <button
                         type="button"
                         onClick={() => setShowAddForm(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#137fec] text-white text-sm font-medium hover:bg-[#0d6bc9] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#137fec] text-white text-sm font-medium hover:bg-[#0d6bc9] transition-colors min-h-[44px]"
                     >
                         <Plus className="w-4 h-4" />
                         Add post
@@ -132,7 +132,7 @@ export default function PostsGrid() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4">
                 {error && (
                     <div className="mb-4 bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">
                         {error}
@@ -142,7 +142,7 @@ export default function PostsGrid() {
                 {editingId != null && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={cancelEdit}>
                         <div
-                            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+                            className="bg-white rounded-lg shadow-xl max-w-md w-full p-4 lg:p-6 max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <h3 className="text-lg font-semibold text-slate-900 mb-4">Edit post</h3>
@@ -153,7 +153,7 @@ export default function PostsGrid() {
                                         type="text"
                                         value={editForm.message}
                                         onChange={(e) => setEditForm((f) => ({ ...f, message: e.target.value }))}
-                                        className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                        className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                     />
                                 </div>
                                 <div>
@@ -162,7 +162,7 @@ export default function PostsGrid() {
                                         type="text"
                                         value={editForm.product_url}
                                         onChange={(e) => setEditForm((f) => ({ ...f, product_url: e.target.value }))}
-                                        className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                        className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                     />
                                 </div>
                                 <div>
@@ -171,7 +171,7 @@ export default function PostsGrid() {
                                         type="number"
                                         value={editForm.sku}
                                         onChange={(e) => setEditForm((f) => ({ ...f, sku: e.target.value }))}
-                                        className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                        className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                         placeholder="Optional integer"
                                     />
                                 </div>
@@ -180,14 +180,14 @@ export default function PostsGrid() {
                                 <button
                                     type="button"
                                     onClick={saveEdit}
-                                    className="px-4 py-2 bg-[#137fec] text-white text-sm font-medium rounded-lg hover:bg-[#0d6bc9]"
+                                    className="flex-1 px-4 py-3 bg-[#137fec] text-white text-sm font-medium rounded-lg hover:bg-[#0d6bc9] min-h-[44px]"
                                 >
                                     Save
                                 </button>
                                 <button
                                     type="button"
                                     onClick={cancelEdit}
-                                    className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                                    className="flex-1 px-4 py-3 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 min-h-[44px]"
                                 >
                                     Cancel
                                 </button>
@@ -199,42 +199,44 @@ export default function PostsGrid() {
                 {showAddForm && (
                     <div className="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                         <h3 className="text-sm font-semibold text-slate-700 mb-3">New post</h3>
-                        <form onSubmit={handleAddSubmit} className="space-y-3 max-w-md">
+                        <form onSubmit={handleAddSubmit} className="space-y-3">
                             <div>
                                 <label className="block text-xs font-medium text-slate-500 mb-1">Message</label>
                                 <input
                                     type="text"
                                     value={addForm.message}
                                     onChange={(e) => setAddForm((f) => ({ ...f, message: e.target.value }))}
-                                    className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                    className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">Product URL</label>
-                                <input
-                                    type="text"
-                                    value={addForm.product_url}
-                                    onChange={(e) => setAddForm((f) => ({ ...f, product_url: e.target.value }))}
-                                    className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
-                                />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">Product URL</label>
+                                    <input
+                                        type="text"
+                                        value={addForm.product_url}
+                                        onChange={(e) => setAddForm((f) => ({ ...f, product_url: e.target.value }))}
+                                        className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1">SKU</label>
+                                    <input
+                                        type="number"
+                                        value={addForm.sku}
+                                        onChange={(e) => setAddForm((f) => ({ ...f, sku: e.target.value }))}
+                                        className="block w-full px-3 py-3 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
+                                        placeholder="Optional integer"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1">SKU</label>
-                                <input
-                                    type="number"
-                                    value={addForm.sku}
-                                    onChange={(e) => setAddForm((f) => ({ ...f, sku: e.target.value }))}
-                                    className="block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/50 focus:border-[#137fec]"
-                                    placeholder="Optional integer"
-                                />
-                            </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 min-h-[44px]">
                                 <input
                                     type="checkbox"
                                     id="add-availability"
                                     checked={addForm.availability}
                                     onChange={(e) => setAddForm((f) => ({ ...f, availability: e.target.checked }))}
-                                    className="h-4 w-4 text-[#137fec] border-slate-300 rounded"
+                                    className="h-5 w-5 text-[#137fec] border-slate-300 rounded"
                                 />
                                 <label htmlFor="add-availability" className="text-sm text-slate-700">
                                     Availability
@@ -244,17 +246,17 @@ export default function PostsGrid() {
                                 <button
                                     type="submit"
                                     disabled={addSaving}
-                                    className="px-4 py-2 bg-[#137fec] text-white text-sm font-medium rounded-lg hover:bg-[#0d6bc9] disabled:opacity-50"
+                                    className="flex-1 sm:flex-none px-4 py-3 bg-[#137fec] text-white text-sm font-medium rounded-lg hover:bg-[#0d6bc9] disabled:opacity-50 min-h-[44px]"
                                 >
                                     {addSaving ? 'Saving…' : 'Create'}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                    setShowAddForm(false);
+                                        setShowAddForm(false);
                                         setAddForm({ message: '', product_url: '', availability: true, sku: '' });
                                     }}
-                                    className="px-4 py-2 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50"
+                                    className="flex-1 sm:flex-none px-4 py-3 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 min-h-[44px]"
                                 >
                                     Cancel
                                 </button>
@@ -263,32 +265,32 @@ export default function PostsGrid() {
                     </div>
                 )}
 
-                <div className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="border border-slate-200 rounded-lg overflow-hidden overflow-x-auto">
                     <table className="min-w-full divide-y divide-slate-200">
                         <thead className="bg-slate-50">
                             <tr>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     ID
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     Post URL
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     Message
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     Product URL
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     SKU
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center whitespace-nowrap">
                                     Availability
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     Created at
                                 </th>
-                                <th scope="col" className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left w-20">
+                                <th scope="col" className="px-4 lg:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-left whitespace-nowrap">
                                     Edit
                                 </th>
                             </tr>
@@ -311,58 +313,56 @@ export default function PostsGrid() {
                                 </tr>
                             ) : (
                                 posts.map((post) => (
-                                        <tr key={post.id} className="hover:bg-slate-50 transition-colors">
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500 font-mono">
-                                                {post.id}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-600 max-w-[180px] truncate" title={post.post_url || ''}>
-                                                {post.post_url ? (
-                                                    <a
-                                                        href={post.post_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[#137fec] hover:underline truncate block"
-                                                    >
-                                                        {post.post_url}
-                                                    </a>
-                                                ) : (
-                                                    '—'
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-900">
-                                                <span className="block max-w-[200px] truncate" title={post.message ?? ''}>
-                                                    {post.message ?? '—'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-600">
-                                                <span className="block max-w-[180px] truncate" title={post.product_url ?? ''}>
-                                                    {post.product_url ?? '—'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-slate-600 font-mono">
-                                                {post.sku ?? '—'}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!post.availability}
-                                                    onChange={(e) => handleAvailabilityChange(post, e.target.checked)}
-                                                    className="h-5 w-5 text-[#137fec] border-slate-300 rounded focus:ring-[#137fec] cursor-pointer"
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
-                                                {formatDate(post.created_at)}
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-nowrap">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => startEdit(post)}
-                                                    className="text-xs px-2 py-1 text-[#137fec] hover:bg-blue-50 rounded"
+                                    <tr key={post.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500 font-mono">
+                                            {post.id}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-600 max-w-[120px] lg:max-w-[180px] truncate" title={post.post_url || ''}>
+                                            {post.post_url ? (
+                                                <a
+                                                    href={post.post_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[#137fec] hover:underline truncate block"
                                                 >
-                                                    Edit
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                    {post.post_url}
+                                                </a>
+                                            ) : (
+                                                '—'
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-900 max-w-[120px] lg:max-w-[200px]">
+                                            <span className="block truncate" title={post.message ?? ''}>
+                                                {post.message ?? '—'}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-600 max-w-[120px] lg:max-w-[180px] truncate" title={post.product_url ?? ''}>
+                                            {post.product_url ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600 font-mono">
+                                            {post.sku ?? '—'}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!post.availability}
+                                                onChange={(e) => handleAvailabilityChange(post, e.target.checked)}
+                                                className="h-5 w-5 text-[#137fec] border-slate-300 rounded focus:ring-[#137fec] cursor-pointer"
+                                            />
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                                            {formatDate(post.created_at)}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap">
+                                            <button
+                                                type="button"
+                                                onClick={() => startEdit(post)}
+                                                className="text-xs px-3 py-2 text-[#137fec] hover:bg-blue-50 rounded min-h-[44px] font-medium"
+                                            >
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
                                 ))
                             )}
                         </tbody>
@@ -370,8 +370,8 @@ export default function PostsGrid() {
                 </div>
 
                 {meta.totalPages > 1 && !loading && (
-                    <div className="flex items-center justify-between border-t border-slate-200 mt-4 pt-4">
-                        <p className="text-sm text-slate-500">
+                    <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200 mt-4 pt-4 gap-3">
+                        <p className="text-sm text-slate-500 text-center sm:text-left">
                             Showing <b className="text-slate-900">{(page - 1) * LIMIT + 1}</b> to{' '}
                             <b className="text-slate-900">{Math.min(page * LIMIT, meta.total)}</b> of{' '}
                             <b className="text-slate-900">{meta.total}</b> results
@@ -380,7 +380,7 @@ export default function PostsGrid() {
                             <button
                                 onClick={() => load(page - 1)}
                                 disabled={page <= 1}
-                                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-40"
+                                className="relative inline-flex items-center rounded-l-md px-3 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-40 min-h-[44px]"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
@@ -390,8 +390,7 @@ export default function PostsGrid() {
                                     <button
                                         key={n}
                                         onClick={() => load(n)}
-                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-300 ${n === page ? 'bg-[#137fec] text-white z-10' : 'text-slate-900 hover:bg-slate-50'
-                                            }`}
+                                        className={`relative inline-flex items-center px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-300 min-h-[44px] ${n === page ? 'bg-[#137fec] text-white z-10' : 'text-slate-900 hover:bg-slate-50'}`}
                                     >
                                         {n}
                                     </button>
@@ -400,7 +399,7 @@ export default function PostsGrid() {
                             <button
                                 onClick={() => load(page + 1)}
                                 disabled={page >= meta.totalPages}
-                                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-40"
+                                className="relative inline-flex items-center rounded-r-md px-3 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:opacity-40 min-h-[44px]"
                             >
                                 <ChevronRight className="w-4 h-4" />
                             </button>
@@ -408,6 +407,6 @@ export default function PostsGrid() {
                     </div>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MoreHorizontal, Bot, Send, Pencil, Loader2, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, Bot, Send, Pencil, Loader2, MessageSquare, ArrowLeft } from 'lucide-react';
 import { getMessages, updateAction } from '../api/client';
 import ReactMarkdown from 'react-markdown';
 
@@ -29,7 +29,6 @@ function MessageContent({ content }) {
     );
 }
 
-// Per-message radio control that auto-saves on change
 function MsgActions({ msg }) {
     const [action, setAction] = useState(msg.action ?? 'no_action');
     const [feedback, setFeedback] = useState(msg.feedback ?? '');
@@ -56,23 +55,24 @@ function MsgActions({ msg }) {
         { val: 'no_action', label: 'No Action', cls: 'text-slate-400', ring: 'focus:ring-slate-400' },
         { val: 'right', label: 'Right', cls: 'text-green-500', ring: 'focus:ring-green-500' },
         { val: 'wrong', label: 'Wrong', cls: 'text-red-500', ring: 'focus:ring-red-500' },
+        { val: 'fixed', label: 'Fixed', cls: 'text-blue-500', ring: 'focus:ring-blue-500' },
     ];
 
     return (
         <div className="flex flex-col gap-2 mt-1">
-            <div className="flex items-center gap-4 px-1">
+            <div className="flex flex-wrap items-center gap-3 px-1">
                 {opts.map(({ val, label, cls, ring }) => (
-                    <label key={val} className="flex items-center gap-1.5 cursor-pointer group select-none">
+                    <label key={val} className="flex items-center gap-1.5 cursor-pointer group select-none min-h-[44px]">
                         <input
                             type="radio"
                             name={`msg-${msg.id}`}
                             checked={action === val}
                             onChange={() => onAction(val)}
-                            className={`w-3 h-3 border-slate-300 cursor-pointer ${cls} ${ring}`}
+                            className={`w-4 h-4 border-slate-300 cursor-pointer ${cls} ${ring}`}
                         />
-                        <span className={`text-[10px] font-medium uppercase tracking-wide
+                        <span className={`text-xs font-medium uppercase tracking-wide
               ${action === val && val !== 'no_action'
-                                ? (val === 'right' ? 'text-green-600' : 'text-red-500')
+                                ? (val === 'right' ? 'text-green-600' : val === 'wrong' ? 'text-red-500' : 'text-blue-500')
                                 : 'text-slate-400 group-hover:text-slate-600'}`}>
                             {label}
                         </span>
@@ -82,7 +82,7 @@ function MsgActions({ msg }) {
 
             {action === 'wrong' && (
                 <div className="ml-1 w-full">
-                    <div className="flex items-center gap-1 mb-1 text-red-500 text-[10px] font-semibold uppercase tracking-wide">
+                    <div className="flex items-center gap-1 mb-1 text-red-500 text-xs font-semibold uppercase tracking-wide">
                         <Pencil className="w-3 h-3" /> Feedback Note
                     </div>
                     <textarea
@@ -99,7 +99,7 @@ function MsgActions({ msg }) {
     );
 }
 
-export default function ChatPanel({ selectedUser }) {
+export default function ChatPanel({ selectedUser, chatOpen, onCloseChat }) {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -121,13 +121,25 @@ export default function ChatPanel({ selectedUser }) {
     const ini = selectedUser ? initials(selectedUser.first_name, selectedUser.last_name) : '??';
 
     return (
-        <aside className="w-[26rem] bg-[#f6f7f8] flex flex-col shrink-0 border-l border-slate-200 h-screen">
-
-            {/* Header */}
-            <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 bg-white shrink-0">
+        <aside
+            className={`
+                fixed lg:static inset-y-0 right-0 z-40
+                w-full lg:w-[26rem] bg-[#f6f7f8] flex flex-col shrink-0 border-l border-slate-200 h-full
+                transform transition-transform duration-300 ease-in-out
+                ${chatOpen ? 'translate-x-0' : 'translate-x-full'}
+                lg:translate-x-0
+            `}
+        >
+            <div className="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-slate-200 bg-white shrink-0">
                 {selectedUser ? (
                     <>
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={onCloseChat}
+                                className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </button>
                             <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-[#137fec] font-bold text-xs">
                                 {ini}
                             </div>
@@ -140,7 +152,7 @@ export default function ChatPanel({ selectedUser }) {
                                 </p>
                             </div>
                         </div>
-                        <button className="text-slate-400 hover:text-slate-600">
+                        <button className="text-slate-400 hover:text-slate-600 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
                             <MoreHorizontal className="w-5 h-5" />
                         </button>
                     </>
@@ -149,7 +161,6 @@ export default function ChatPanel({ selectedUser }) {
                 )}
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 {!selectedUser ? (
                     <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-300">
@@ -175,7 +186,6 @@ export default function ChatPanel({ selectedUser }) {
                             <div key={msg.id}
                                 className={`flex gap-3 max-w-[90%] ${isUser ? 'ml-auto flex-row-reverse' : ''}`}>
 
-                                {/* Avatar */}
                                 {isUser ? (
                                     <div className="w-8 h-8 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-[#137fec] text-xs font-bold">
                                         {ini}
@@ -186,7 +196,6 @@ export default function ChatPanel({ selectedUser }) {
                                     </div>
                                 )}
 
-                                {/* Bubble + actions */}
                                 <div className={`flex flex-col gap-1 w-full ${isUser ? 'items-end' : ''}`}>
                                     <div className={`p-3 text-sm shadow-sm leading-relaxed
                     ${isUser
@@ -206,7 +215,6 @@ export default function ChatPanel({ selectedUser }) {
                 <div ref={bottomRef} />
             </div>
 
-            {/* Footer input */}
             <div className="p-4 bg-white border-t border-slate-200 shrink-0">
                 <div className="relative flex items-center">
                     <input
@@ -214,7 +222,7 @@ export default function ChatPanel({ selectedUser }) {
                         className="w-full pl-4 pr-12 py-3 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-[#137fec]/20 focus:bg-white transition-all"
                         placeholder="Type a message..."
                     />
-                    <button className="absolute right-2 p-1.5 bg-[#137fec] text-white rounded-md hover:bg-blue-600 transition-colors">
+                    <button className="absolute right-2 p-2 bg-[#137fec] text-white rounded-md hover:bg-blue-600 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center">
                         <Send className="w-4 h-4" />
                     </button>
                 </div>
