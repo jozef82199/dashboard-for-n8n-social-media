@@ -24,7 +24,7 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
     const load = useCallback(async (pg = 1) => {
         setLoading(true); setError(null);
         try {
-            const params = { page: pg, limit: 15 };
+            const params = { page: pg, limit: 50 };
             if (search) params.search = search;
             if (disOnly) params.bot_active = false;
             if (unreviewedOnly) params.has_unreviewed = true;
