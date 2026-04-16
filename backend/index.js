@@ -12,9 +12,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const redis = createClient({
+const redisOptions = {
     url: `redis://${process.env.REDIS_HOST || '127.0.0.1'}:${process.env.REDIS_PORT || 6379}`,
-});
+};
+if (process.env.REDIS_PASSWORD) {
+    redisOptions.password = process.env.REDIS_PASSWORD;
+}
+const redis = createClient(redisOptions);
 redis.on('error', (err) => console.error('Redis Client Error', err));
 
 for (let attempt = 1; attempt <= 10; attempt++) {
