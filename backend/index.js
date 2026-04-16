@@ -1,12 +1,36 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import { createClient } from 'redis';
 import pool from './db.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+const redis = createClient({
+    url: `redis://${process.env.REDIS_HOST || '127.0.0.1'}:${process.env.REDIS_PORT || 6379}`,
+});
+redis.on('error', (err) => console.error('Redis Client Error', err));
+
+for (let attempt = 1; attempt <= 10; attempt++) {
+    try {
+        await redis.connect();
+        console.log('Connected to Redis');
+        break;
+    } catch (err) {
+        console.error(`Redis connect attempt ${attempt}/10 failed: ${err.message}`);
+        if (attempt === 10) {
+            console.error('Could not connect to Redis after 10 attempts. Redis features will be unavailable.');
+            break;
+        }
+        await new Promise((r) => setTimeout(r, 3000));
+    }
+}
 
 // ── 1. Get Users (filtered + paginated) ──────────────────────────────────────
 app.get('/api/users', async (req, res) => {
@@ -288,6 +312,38 @@ app.patch('/api/posts/:id', async (req, res) => {
         );
         if (!result.rows.length) return res.status(404).json({ error: 'Post not found' });
         res.json(result.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── 6. Redis Config (workflowRunning / default_user_bot_respond) ──────────────
+const VALID_REDIS_KEYS = ['workflowRunning', 'default_user_bot_respond'];
+
+app.get('/api/redis/config', async (_req, res) => {
+    try {
+        const entries = await redis.mGet(VALID_REDIS_KEYS);
+        const config = {};
+        VALID_REDIS_KEYS.forEach((key, i) => {
+            config[key] = entries[i] === '1';
+        });
+        res.json(config);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/api/redis/config', async (req, res) => {
+    try {
+        const { key, value } = req.body;
+        if (!VALID_REDIS_KEYS.includes(key)) {
+            return res.status(400).json({ error: `Invalid key. Must be one of: ${VALID_REDIS_KEYS.join(', ')}` });
+        }
+        await redis.set(key, value ? '1' : '0');
+        console.log(`[Redis] SET ${key} = ${value ? '1' : '0'}`);
+        res.json({ success: true, key, value: !!value });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });

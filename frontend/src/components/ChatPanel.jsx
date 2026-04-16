@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useReducer, useEffect, useRef } from 'react';
 import { MoreHorizontal, Bot, Send, Pencil, Loader2, MessageSquare, ArrowLeft } from 'lucide-react';
 import { getMessages, updateAction } from '../api/client';
 import ReactMarkdown from 'react-markdown';
@@ -6,6 +6,18 @@ import ReactMarkdown from 'react-markdown';
 const PLAT_LABEL = { telegram: 'Telegram', whatsapp: 'WhatsApp', messenger: 'Messenger' };
 const initials = (f, l) => `${(f || '?')[0]}${(l || '?')[0]}`.toUpperCase();
 const hasArabic = (text) => /[\u0600-\u06FF]/.test(text || '');
+
+const chatInitialState = { messages: [], loading: false, error: null };
+
+function chatReducer(state, action) {
+    switch (action.type) {
+        case 'fetch': return { messages: [], loading: true, error: null };
+        case 'success': return { messages: action.payload, loading: false, error: null };
+        case 'error': return { ...state, loading: false, error: 'Failed to load messages.' };
+        case 'reset': return chatInitialState;
+        default: return state;
+    }
+}
 
 function MessageContent({ content }) {
     const isArabic = hasArabic(content);
@@ -100,18 +112,20 @@ function MsgActions({ msg }) {
 }
 
 export default function ChatPanel({ selectedUser, chatOpen, onCloseChat }) {
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [{ messages, loading, error }, dispatch] = useReducer(chatReducer, chatInitialState);
     const bottomRef = useRef(null);
 
     useEffect(() => {
-        if (!selectedUser) return;
-        setMessages([]); setLoading(true); setError(null);
+        if (!selectedUser) {
+            dispatch({ type: 'reset' });
+            return;
+        }
+        let cancelled = false;
+        dispatch({ type: 'fetch' });
         getMessages(selectedUser.id)
-            .then(setMessages)
-            .catch(() => setError('Failed to load messages.'))
-            .finally(() => setLoading(false));
+            .then((data) => { if (!cancelled) dispatch({ type: 'success', payload: data }); })
+            .catch(() => { if (!cancelled) dispatch({ type: 'error' }); });
+        return () => { cancelled = true; };
     }, [selectedUser?.id]);
 
     useEffect(() => {

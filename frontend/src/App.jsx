@@ -1,15 +1,63 @@
-import { useState, useCallback } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Menu, X, Zap, MessageSquare } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import ChatPanel from './components/ChatPanel';
 import PostsGrid from './components/PostsGrid';
+import { getRedisConfig, setRedisConfig } from './api/client';
+
+function RedisToggle({ label, icon, value, onChange }) {
+    const Icon = icon;
+    return (
+        <button
+            onClick={onChange}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                value
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-slate-100 border-slate-300 text-slate-500'
+            }`}
+        >
+            <Icon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{label}</span>
+            <span className={`inline-block w-2 h-2 rounded-full ${value ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+        </button>
+    );
+}
 
 export default function App() {
-  const [platform, setPlatform] = useState('telegram');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
+    const [platform, setPlatform] = useState('telegram');
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [chatOpen, setChatOpen] = useState(false);
+    const [redisConfig, setRedisConfigState] = useState({
+        workflowRunning: false,
+        default_user_bot_respond: false,
+    });
+
+    useEffect(() => {
+        getRedisConfig()
+            .then((config) => setRedisConfigState(config))
+            .catch((err) => console.error('Failed to load Redis config:', err));
+    }, []);
+
+    const handleRedisToggle = useCallback(async (key) => {
+        const newVal = !redisConfig[key];
+        setRedisConfigState((prev) => ({ ...prev, [key]: newVal }));
+        try {
+            await setRedisConfig(key, newVal);
+            const actual = await getRedisConfig();
+            setRedisConfigState(actual);
+        } catch (err) {
+            console.error('Failed to update Redis config:', err);
+            const actual = await getRedisConfig().catch(() => null);
+            if (actual) {
+                setRedisConfigState(actual);
+            } else {
+                setRedisConfigState((prev) => ({ ...prev, [key]: !newVal }));
+            }
+            alert('Failed to update Redis config. Check backend and Redis connection.');
+        }
+    }, [redisConfig]);
 
   const handlePlatformChange = useCallback((p) => {
     setPlatform(p);
@@ -54,8 +102,17 @@ export default function App() {
           <Menu className="w-6 h-6" />
         </button>
         <h1 className="text-sm font-semibold text-slate-900">Admin Panel</h1>
-        <div className="w-10" />
+        <div className="flex items-center gap-2">
+          <RedisToggle label="Workflow" icon={Zap} value={redisConfig.workflowRunning} onChange={() => handleRedisToggle('workflowRunning')} />
+          <RedisToggle label="Bot Respond" icon={MessageSquare} value={redisConfig.default_user_bot_respond} onChange={() => handleRedisToggle('default_user_bot_respond')} />
+        </div>
       </header>
+
+      {/* Desktop Redis toggle bar */}
+      <div className="hidden lg:flex fixed top-0 right-0 left-64 h-12 bg-white border-b border-slate-200 items-center justify-end px-6 z-10 gap-3">
+        <RedisToggle label="Workflow Running" icon={Zap} value={redisConfig.workflowRunning} onChange={() => handleRedisToggle('workflowRunning')} />
+        <RedisToggle label="Default Bot Respond" icon={MessageSquare} value={redisConfig.default_user_bot_respond} onChange={() => handleRedisToggle('default_user_bot_respond')} />
+      </div>
 
       {/* Sidebar */}
       <Sidebar
@@ -66,7 +123,7 @@ export default function App() {
       />
 
       {/* Main content area */}
-      <main className="flex-1 flex flex-col pt-14 lg:pt-0 overflow-hidden">
+      <main className="flex-1 flex flex-col pt-14 lg:pt-12 overflow-hidden">
         {platform === 'posts' ? (
           <PostsGrid />
         ) : (

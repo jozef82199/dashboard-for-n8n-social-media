@@ -40,15 +40,13 @@ export default function MainContent({ platform, selectedUser, onSelectUser }) {
         }
     }, [platform, search, disOnly, unreviewedOnly, chatAction]);
 
-    useEffect(() => { setPage(1); load(1); }, [platform, disOnly, unreviewedOnly, chatAction]);
+    useEffect(() => { setPage(1); load(1); }, [load]);
 
     function handleSearch(e) {
         const v = e.target.value;
         clearTimeout(timer.current);
-        timer.current = setTimeout(() => { setSearch(v); setPage(1); load(1); }, 400);
+        timer.current = setTimeout(() => setSearch(v), 400);
     }
-
-    useEffect(() => { load(1); }, [search]);
 
     const platformLabel = LABEL[platform] ?? platform;
 

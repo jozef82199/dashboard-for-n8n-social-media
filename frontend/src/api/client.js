@@ -47,3 +47,12 @@ export const updatePost = (id, payload) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
     });
+
+export const getRedisConfig = () => req('/redis/config');
+
+export const setRedisConfig = (key, value) =>
+    req('/redis/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value }),
+    });
